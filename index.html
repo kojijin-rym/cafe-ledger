@@ -89,10 +89,9 @@
             #records-table { min-width: 100% !important; table-layout: fixed; }
             .printable-table th, .printable-table td { padding: 0 2px !important; font-size: 7pt !important; }
             
-            /* さらに高さを狭めるためのルールを調整 */
             #records-table tbody td {
-                height: 26px !important; /* 固定の高さを最終調整 */
-                line-height: 1.1 !important; /* 行の高さを詰める */
+                height: 25px !important; 
+                line-height: 1.1 !important; 
             }
 
             #records-table th { font-weight: bold; }
@@ -152,6 +151,7 @@
                             <th class="p-2 text-left">品名</th>
                             <th class="p-2 w-32 text-right">金額</th>
                             <th class="p-2 text-left">メモ</th>
+                            <th class="p-2 w-16 no-print"></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -233,12 +233,14 @@
     const ledgerMonthInput = document.getElementById('ledger-month');
 
     let menuData = [
-        { id: 'm1', type: 'ドリップ', name: 'ブラジル', price: 150, cost: 100 },
-        { id: 'm2', type: 'ドリップ', name: 'エチオピア', price: 150, cost: 100 },
-        { id: 'm3', type: 'フレンチ', name: 'ブラジル', price: 150, cost: 100 },
-        { id: 'm4', type: 'フレンチ', name: 'エチオピア', price: 150, cost: 100 },
-        { id: 'm5', type: 'エスプレッソ', name: 'ブラジル', price: 200, cost: 100 },
-        { id: 'm6', type: 'エスプレッソ', name: 'エチオピア', price: 200, cost: 100 }
+        { id: 'm1', type: 'ドリップ/ノフ', name: 'アフリカンハーモニー', price: 150, cost: 100 },
+        { id: 'm2', type: 'ドリップ/ノフ', name: 'イタリアーノ', price: 150, cost: 100 },
+        { id: 'm3', type: 'ドリップ/ノフ', name: 'ブレンド', price: 150, cost: 100 },
+        { id: 'm4', type: 'ドリップ/ノフ', name: 'ハピサマ', price: 150, cost: 100 },
+        { id: 'm5', type: 'エスプレッソ', name: 'アフリカンハーモニー', price: 200, cost: 100 },
+        { id: 'm6', type: 'エスプレッソ', name: 'イタリアーノ', price: 200, cost: 100 },
+        { id: 'm7', type: 'エスプレッソ', name: 'ブレンド', price: 200, cost: 100 },
+        { id: 'm8', type: 'エスプレッソ', name: 'ハピサマ', price: 200, cost: 100 }
     ];
 
     function generateId() {
@@ -334,7 +336,13 @@
 
     function addPurchasingRow() {
         const row = purchasingTableBody.insertRow();
-        row.innerHTML = '<td></td><td></td><td></td><td></td>';
+        row.innerHTML = `
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="p-2 text-center no-print"><button class="remove-purchasing-row text-red-500 hover:text-red-700 font-bold">✕</button></td>
+        `;
     }
     
     function updateTemplate() {
@@ -377,6 +385,12 @@
     });
 
     addPurchasingRowBtn.addEventListener('click', addPurchasingRow);
+
+    purchasingTableBody.addEventListener('click', e => {
+        if (e.target.classList.contains('remove-purchasing-row')) {
+            e.target.closest('tr').remove();
+        }
+    });
 
     printBtn.addEventListener('click', () => {
         window.print();
