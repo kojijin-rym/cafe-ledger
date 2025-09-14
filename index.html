@@ -87,7 +87,6 @@
 
             table { width: 100% !important; page-break-inside: auto; }
             
-            /* --- 印刷時のメニューテーブルのスタイルを修正 --- */
             #menu-table { table-layout: fixed; }
             #menu-table th:nth-child(1), #menu-table td:nth-child(1) { width: 25%; }
             #menu-table th:nth-child(2), #menu-table td:nth-child(2) { width: 35%; word-wrap: break-word; }
@@ -132,10 +131,10 @@
         <div id="section-1" class="bg-white p-6 rounded-xl shadow-lg mb-8">
             <h2 class="text-2xl font-bold mb-4 text-[#8b5e34]">1. メニューと原価の設定</h2>
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[700px]" id="menu-table">
+                <table class="w-full min-w-[850px]" id="menu-table">
                     <thead class="table-header">
                         <tr>
-                            <th class="p-3 text-left w-32">淹れ方</th>
+                            <th class="p-3 text-left w-48">淹れ方</th>
                             <th class="p-3 text-left">使う豆</th>
                             <th class="p-3 text-right w-32">単価<br>(売る値段)</th>
                             <th class="p-3 text-right w-32">原価<br>(豆代)</th>
@@ -243,14 +242,15 @@
     const ledgerMonthInput = document.getElementById('ledger-month');
 
     let menuData = [
-        { id: 'm1', type: 'ドリップ/ノフ', name: 'アフリカンハーモニー', price: 150, cost: 100 },
-        { id: 'm2', type: 'ドリップ/ノフ', name: 'イタリアーノ', price: 150, cost: 100 },
-        { id: 'm3', type: 'ドリップ/ノフ', name: 'ブレンド', price: 150, cost: 100 },
-        { id: 'm4', type: 'ドリップ/ノフ', name: 'ハピサマ', price: 150, cost: 100 },
-        { id: 'm5', type: 'エスプレッソ', name: 'アフリカンハーモニー', price: 200, cost: 100 },
+        { id: 'm1', type: 'ドリップ/フレ', name: 'アフリカン', price: 150, cost: 100 },
+        { id: 'm2', type: 'ドリップ/フレ', name: 'イタリアーノ', price: 150, cost: 100 },
+        { id: 'm3', type: 'ドリップ/フレ', name: 'ブレンド', price: 150, cost: 100 },
+        { id: 'm4', type: 'ドリップ/フレ', name: 'ハピサマ', price: 150, cost: 100 },
+        { id: 'm5', type: 'エスプレッソ', name: 'アフリカン', price: 200, cost: 100 },
         { id: 'm6', type: 'エスプレッソ', name: 'イタリアーノ', price: 200, cost: 100 },
         { id: 'm7', type: 'エスプレッソ', name: 'ブレンド', price: 200, cost: 100 },
-        { id: 'm8', type: 'エスプレッソ', name: 'ハピサマ', price: 200, cost: 100 }
+        { id: 'm8', type: 'エスプレッソ', name: 'ハピサマ', price: 200, cost: 100 },
+        { id: 'm9', type: 'チケット', name: '5回券', price: 750, cost: 0 }
     ];
 
     function generateId() {
