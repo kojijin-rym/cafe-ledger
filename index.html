@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おうちカフェ経営帳簿</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Inter', sans-serif;
+            background-color: #fdfaf6;
+        }
+        .table-header {
+            background-color: #d2b48c; /* tan */
+            color: #4a2c2a; /* dark brown */
+        }
+        .summary-card {
+            background-color: #f5eadd; /* light beige */
+            border-left: 5px solid #8b5e34; /* brown */
+        }
+        input[type="number"], input[type="text"], input[type="month"] {
+            width: 100%;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        input[type="number"] {
+             text-align: right;
+        }
+        .printable-table td, .printable-table th {
+            border: 1px solid #e2e8f0;
+            padding: 4px;
+            text-align: center;
+            height: 38px;
+        }
+        .table-header th {
+            vertical-align: middle;
+        }
+        
+        .menu-item-col {
+            width: 35px;
+            min-width: 35px;
+            max-width: 35px;
+        }
+        #records-table th.menu-item-col {
+            padding: 2px !important;
+            font-size: 11px;
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background-color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 0.5cm !important;
+                font-size: 9pt;
+            }
+            .no-print { display: none !important; }
+            .print-only {
+                display: flex !important;
+                flex-direction: column;
+                flex-grow: 1;
+            }
+            .print-only .notes-box { flex-grow: 1; }
+            .shadow-lg {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+            .p-6 { padding: 10px !important; }
+            .mb-8 { margin-bottom: 12px !important; }
+            h2 { font-size: 14pt !important; margin-bottom: 6px !important; }
+
+            #main-content-container { display: flex; flex-direction: column; }
+            #section-1 { order: 1; }
+            #section-2 { order: 2; }
+            #section-4 { order: 3; }
+            #print-notes-section { order: 4; flex-grow: 1; }
+            #section-3 { order: 5; page-break-before: always; }
+
+            table { width: 100% !important; page-break-inside: auto; }
+            #records-table { min-width: 100% !important; table-layout: fixed; }
+            .printable-table th, .printable-table td { padding: 0 2px !important; font-size: 7pt !important; }
+            
+            /* さらに高さを狭めるためのルールを調整 */
+            #records-table tbody td {
+                height: 26px !important; /* 固定の高さを最終調整 */
+                line-height: 1.1 !important; /* 行の高さを詰める */
+            }
+
+            #records-table th { font-weight: bold; }
+            #records-table .menu-item-col { width: 2.5ch !important; }
+            #records-table th.menu-item-col {
+                padding: 2px 0 !important;
+                height: 70px;
+                font-size: 6.5pt !important;
+                letter-spacing: -0.5px;
+            }
+            #menu-table input { border: none !important; background-color: transparent !important; padding: 2px !important; }
+            .summary-card { background-color: #f5eadd !important; border-left: 5px solid #8b5e34 !important; }
+            .summary-card p { font-size: 10pt; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="main-content-container" class="max-w-7xl mx-auto flex flex-col min-h-[90vh]">
+        <header class="text-center mb-8 no-print">
+            <h1 class="text-4xl font-extrabold text-[#4a2c2a]">おうちカフェ 経営帳簿 ☕</h1>
+            <p class="text-gray-600 mt-2">メニューを編集して、オリジナルの帳簿を印刷しよう！</p>
+        </header>
+
+        <!-- Section 1: Menu & Cost Settings -->
+        <div id="section-1" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-[#8b5e34]">1. メニューと原価の設定</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[700px]" id="menu-table">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="p-3 text-left w-32">淹れ方</th>
+                            <th class="p-3 text-left">使う豆</th>
+                            <th class="p-3 text-right w-32">単価 (売る値段)</th>
+                            <th class="p-3 text-right w-32">原価 (豆代)</th>
+                            <th class="p-3 w-16 no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button id="add-menu-item" class="mt-4 bg-[#8b5e34] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#6f4e2b] transition-colors no-print">
+                ＋ 新しいメニューを追加
+            </button>
+        </div>
+
+        <!-- Section 2: Purchasing Records -->
+        <div id="section-2" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-[#8b5e34]">2. お店のために使ったお金（経費）豆やフィルターなど</h2>
+             <div class="overflow-x-auto">
+                <table class="w-full min-w-[600px] printable-table" id="purchasing-table">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="p-2 w-32">日付</th>
+                            <th class="p-2 text-left">品名</th>
+                            <th class="p-2 w-32 text-right">金額</th>
+                            <th class="p-2 text-left">メモ</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+             <button id="add-purchasing-row" class="mt-4 bg-[#8b5e34] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#6f4e2b] transition-colors no-print">
+                ＋ 行を追加
+            </button>
+        </div>
+
+        <!-- Section 3: Daily Records -->
+        <div id="section-3" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <div class="flex flex-wrap justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[#8b5e34]">3. 毎日の記録</h2>
+                <div class="flex items-center gap-2 no-print">
+                    <label for="ledger-month" class="font-bold text-gray-700">帳簿の年月:</label>
+                    <input type="month" id="ledger-month" class="p-1 border-gray-300 rounded-md">
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full printable-table" id="records-table">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Section 4: Monthly Summary -->
+        <div id="section-4" class="summary-card p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-[#4a2c2a]">今月のまとめ</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                <div class="flex justify-between items-center border-b-2 border-gray-400 pb-1">
+                    <p class="text-lg">総売上</p>
+                    <p class="text-lg font-bold">円</p>
+                </div>
+                <div class="flex justify-between items-center border-b-2 border-gray-400 pb-1">
+                    <div>
+                        <p class="text-lg">費用合計</p>
+                        <p class="text-xs text-gray-600">(売れた商品の材料費 ＋ お店のために使ったお金)</p>
+                    </div>
+                    <p class="text-lg font-bold">円</p>
+                </div>
+                 <div class="flex justify-between items-center border-b-2 border-gray-400 pb-1">
+                    <div>
+                        <p class="text-lg">純利益 (本当のもうけ)</p>
+                        <p class="text-xs text-gray-600">(総売上 - 費用合計)</p>
+                    </div>
+                    <p class="text-lg font-bold">円</p>
+                </div>
+                 <div class="flex justify-between items-center border-b-2 border-gray-400 pb-1">
+                    <p class="text-lg">合計提供数 (有料/無料)</p>
+                    <p class="text-lg font-bold">杯 / 杯</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Notes Section for Print Only -->
+        <div id="print-notes-section" class="print-only mt-4">
+            <h2 class="text-xl font-bold mb-2 text-[#8b5e34]">メモ</h2>
+            <div class="notes-box border-2 border-dashed border-gray-400 rounded-lg p-4 h-full">
+            </div>
+        </div>
+
+        <div class="text-center mt-8 no-print">
+             <button id="print-button" class="bg-green-700 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-800 transition-colors text-lg">
+                📄 この帳簿を印刷する
+            </button>
+        </div>
+    </div>
+
+<script>
+    const menuTableBody = document.querySelector('#menu-table tbody');
+    const recordsTableHead = document.querySelector('#records-table thead');
+    const recordsTableBody = document.querySelector('#records-table tbody');
+    const purchasingTableBody = document.querySelector('#purchasing-table tbody');
+    const addMenuItemBtn = document.getElementById('add-menu-item');
+    const addPurchasingRowBtn = document.getElementById('add-purchasing-row');
+    const printBtn = document.getElementById('print-button');
+    const ledgerMonthInput = document.getElementById('ledger-month');
+
+    let menuData = [
+        { id: 'm1', type: 'ドリップ', name: 'ブラジル', price: 150, cost: 100 },
+        { id: 'm2', type: 'ドリップ', name: 'エチオピア', price: 150, cost: 100 },
+        { id: 'm3', type: 'フレンチ', name: 'ブラジル', price: 150, cost: 100 },
+        { id: 'm4', type: 'フレンチ', name: 'エチオピア', price: 150, cost: 100 },
+        { id: 'm5', type: 'エスプレッソ', name: 'ブラジル', price: 200, cost: 100 },
+        { id: 'm6', type: 'エスプレッソ', name: 'エチオピア', price: 200, cost: 100 }
+    ];
+
+    function generateId() {
+        return 'm' + Date.now();
+    }
+
+    function renderMenu() {
+        menuTableBody.innerHTML = '';
+        menuData.forEach(item => {
+            const row = menuTableBody.insertRow();
+            row.dataset.id = item.id;
+            row.innerHTML = `
+                <td class="p-2"><input type="text" value="${item.type}" class="menu-type-input text-left" placeholder="例: ドリップ"></td>
+                <td class="p-2"><input type="text" value="${item.name}" class="menu-name-input text-left" placeholder="例: ブラジル豆"></td>
+                <td class="p-2"><input type="number" value="${item.price}" min="0"></td>
+                <td class="p-2"><input type="number" value="${item.cost}" min="0"></td>
+                <td class="p-2 text-center no-print"><button class="remove-menu-item text-red-500 hover:text-red-700 font-bold">✕</button></td>
+            `;
+        });
+        updateTemplate();
+    }
+
+    function renderRecordsHeader() {
+        const groupedMenu = menuData.reduce((acc, item) => {
+            const type = item.type || '未分類';
+            if (!acc[type]) acc[type] = [];
+            acc[type].push(item);
+            return acc;
+        }, {});
+
+        if (Object.keys(groupedMenu).length === 0) {
+            recordsTableHead.innerHTML = '';
+            return;
+        }
+
+        let row1 = `<th rowspan="3" class="p-2 text-left w-24">日付</th>`;
+        let row2 = '';
+        let row3 = '';
+
+        const totalMenuCount = menuData.length;
+        row1 += `<th colspan="${totalMenuCount}" class="p-2 border-b border-l border-white">有料提供（杯）</th>`;
+
+        Object.keys(groupedMenu).forEach(type => {
+            const items = groupedMenu[type];
+            row2 += `<th colspan="${items.length}" class="p-1 border-b border-l border-white font-medium">${type}</th>`;
+            items.forEach(item => {
+                row3 += `<th class="p-1 border-l border-white font-normal menu-item-col" style="writing-mode: vertical-rl;">${item.name}</th>`;
+            });
+        });
+        
+        const staticHeaders = `
+            <th rowspan="3" class="p-1 border-l border-white w-16">デカフェ<br>（無料）</th>
+            <th rowspan="3" class="p-1 border-l border-white w-16">その他<br>経費</th>
+            <th rowspan="3" class="p-1 border-l border-white w-16">売上</th>
+            <th rowspan="3" class="p-1 border-l border-white w-16">
+                利益
+                <span class="block font-normal text-[10px] tracking-tighter">(売上-原価-経費)</span>
+            </th>
+        `;
+
+        recordsTableHead.innerHTML = `
+            <tr class="table-header">${row1}${staticHeaders}</tr>
+            <tr class="table-header">${row2}</tr>
+            <tr class="table-header">${row3}</tr>
+        `;
+    }
+
+    function renderRecordsBody() {
+        recordsTableBody.innerHTML = '';
+        if (!ledgerMonthInput.value) return;
+
+        const [year, month] = ledgerMonthInput.value.split('-').map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        const menuCells = '<td class="menu-item-col"></td>'.repeat(menuData.length);
+        const staticCells = '<td></td>'.repeat(4);
+        const allEmptyCells = menuCells + staticCells;
+
+        for (let i = 1; i <= daysInMonth; i++) {
+             const dateObj = new Date(year, month - 1, i);
+             const dayOfWeek = dateObj.toLocaleString('ja-JP', { weekday: 'short' });
+             const row = recordsTableBody.insertRow();
+             row.innerHTML = `<td class="p-1 text-left pl-2 text-xs">${i}日(${dayOfWeek})</td>${allEmptyCells}`;
+        }
+    }
+
+    function renderPurchasingTable(initialRows = 3) {
+        purchasingTableBody.innerHTML = '';
+        for (let i = 0; i < initialRows; i++) {
+            addPurchasingRow();
+        }
+    }
+
+    function addPurchasingRow() {
+        const row = purchasingTableBody.insertRow();
+        row.innerHTML = '<td></td><td></td><td></td><td></td>';
+    }
+    
+    function updateTemplate() {
+        updateMenuData();
+        renderRecordsHeader();
+        renderRecordsBody();
+    }
+
+    function updateMenuData() {
+        const rows = menuTableBody.querySelectorAll('tr');
+        const newMenuData = [];
+        rows.forEach(row => {
+            const id = row.dataset.id;
+            const type = row.querySelector('.menu-type-input').value;
+            const name = row.querySelector('.menu-name-input').value;
+            
+            const priceInput = row.querySelector('input[type="number"]');
+            const price = priceInput ? priceInput.value : 0;
+            const costInput = row.querySelectorAll('input[type="number"]')[1];
+            const cost = costInput ? costInput.value : 0;
+
+            if (name && type) {
+                 newMenuData.push({ id, type, name, price, cost });
+            }
+        });
+        menuData = newMenuData;
+    }
+
+    function setInitialMonth() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        ledgerMonthInput.value = `${year}-${month}`;
+    }
+
+    // --- Event Listeners ---
+    addMenuItemBtn.addEventListener('click', () => {
+        menuData.push({ id: generateId(), type: '', name: '', price: 0, cost: 0 });
+        renderMenu();
+    });
+
+    addPurchasingRowBtn.addEventListener('click', addPurchasingRow);
+
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+    
+    ledgerMonthInput.addEventListener('change', updateTemplate);
+    menuTableBody.addEventListener('input', updateTemplate);
+
+    menuTableBody.addEventListener('click', e => {
+        if (e.target.classList.contains('remove-menu-item')) {
+            const row = e.target.closest('tr');
+            menuData = menuData.filter(item => item.id !== row.dataset.id);
+            renderMenu();
+        }
+    });
+
+    // --- Initial Load ---
+    setInitialMonth();
+    renderMenu();
+    renderPurchasingTable();
+
+</script>
+
+</body>
+</html>
+
